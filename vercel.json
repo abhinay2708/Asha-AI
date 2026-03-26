@@ -3,7 +3,7 @@
   "builds": [
     {
       "src": "frontend/package.json",
-      "use": "@vercel/next"
+      "use": "@vercel/.next"
     },
     {
       "src": "backend/app/main.py",
