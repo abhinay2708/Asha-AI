@@ -15,7 +15,8 @@ from .ai_service import analyze_symptoms_gemini
 SYSTEM_PROMPT = """You are a rural healthcare assistant. You help triage patients by analyzing their symptoms.
 IMPORTANT: You must NEVER provide definitive medical diagnoses. Use guiding language only (e.g., "suspected", "may indicate", "could suggest").
 Your role is to help prioritize care and suggest when professional evaluation is needed.
-CRITICAL: The values in your JSON response (condition_suspected, severity, advice, specialist_needed) MUST be fully translated into the language specified in the user prompt. The JSON keys themselves MUST remain in English!
+CRITICAL: The values in your JSON response (condition_suspected, severity, advice, specialist_needed) MUST be fully translated into the language specified in the user prompt. 
+HOWEVER, the 'severity' field MUST ONLY be one of these exact English strings: "Green", "Yellow", or "Red". Even if you translate other fields, KEEP 'severity' in English!
 
 Analyze the patient's symptoms and return ONLY valid JSON with exactly these keys:
 - condition_suspected: A brief description of what might be going on (use cautious language)
@@ -91,7 +92,9 @@ class TriageService:
         localized_severity = data.get("severity")
         if isinstance(localized_severity, str):
             from .ai_service import SEVERITY_TRANSLATIONS
-            data["severity"] = SEVERITY_TRANSLATIONS.get(localized_severity.lower(), localized_severity)
+            # Normalize and translate
+            normalized = localized_severity.strip().lower()
+            data["severity"] = SEVERITY_TRANSLATIONS.get(normalized, localized_severity)
 
         return TriageResponse(**data)
     
@@ -110,6 +113,8 @@ class TriageService:
         localized_severity = data.get("severity")
         if isinstance(localized_severity, str):
             from .ai_service import SEVERITY_TRANSLATIONS
-            data["severity"] = SEVERITY_TRANSLATIONS.get(localized_severity.lower(), localized_severity)
+            # Normalize and translate
+            normalized = localized_severity.strip().lower()
+            data["severity"] = SEVERITY_TRANSLATIONS.get(normalized, localized_severity)
 
         return TriageResponse(**data)
