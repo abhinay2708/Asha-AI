@@ -86,6 +86,13 @@ class TriageService:
         )
         content = response.choices[0].message.content
         data = self._extract_json(content)
+
+        # Translate localized severity to English if needed
+        localized_severity = data.get("severity")
+        if isinstance(localized_severity, str):
+            from .ai_service import SEVERITY_TRANSLATIONS
+            data["severity"] = SEVERITY_TRANSLATIONS.get(localized_severity.lower(), localized_severity)
+
         return TriageResponse(**data)
     
     async def _analyze_with_anthropic(self, user_message: str) -> TriageResponse:
@@ -98,4 +105,11 @@ class TriageService:
         )
         content = response.content[0].text
         data = self._extract_json(content)
+
+        # Translate localized severity to English if needed
+        localized_severity = data.get("severity")
+        if isinstance(localized_severity, str):
+            from .ai_service import SEVERITY_TRANSLATIONS
+            data["severity"] = SEVERITY_TRANSLATIONS.get(localized_severity.lower(), localized_severity)
+
         return TriageResponse(**data)

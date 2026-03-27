@@ -8,6 +8,33 @@ import re
 from ..config import get_settings
 from ..models.schemas import TriageResponse
 
+# Mapping for localized severity terms to English
+SEVERITY_TRANSLATIONS = {
+    "green": "Green",
+    "yellow": "Yellow",
+    "red": "Red",
+    # Bengali
+    "সবুজ": "Green",
+    "হলুদ": "Yellow",
+    "লাল": "Red",
+    # Hindi
+    "हरा": "Green",
+    "पीला": "Yellow",
+    # "लाल" is same as Bengali "লাল" (red)
+    # Odia
+    "ସବୁଜ": "Green",
+    "ହଳଦିଆ": "Yellow",
+    "ନାଲି": "Red",
+    # Telugu
+    "ఆకుపచ్చ": "Green",
+    "పసుపు": "Yellow",
+    "ఎరుపు": "Red",
+    # Marathi
+    "हिरवा": "Green",
+    "पिवळा": "Yellow",
+    "लाल": "Red",
+}
+
 SYSTEM_PROMPT = """You are a rural healthcare assistant. You help triage patients by analyzing their symptoms.
 IMPORTANT: You must NEVER provide definitive medical diagnoses. Use guiding language only (e.g., "suspected", "may indicate", "could suggest").
 Your role is to help prioritize care and suggest when professional evaluation is needed.
@@ -52,6 +79,12 @@ def _analyze_with_gemini_sync(user_message: str) -> TriageResponse:
 
     content = response.text if response.text else str(response)
     data = _extract_json(content)
+
+    # Translate localized severity to English if needed
+    localized_severity = data.get("severity")
+    if isinstance(localized_severity, str):
+        data["severity"] = SEVERITY_TRANSLATIONS.get(localized_severity.lower(), localized_severity)
+
     return TriageResponse(**data)
 
 
